@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disease Detection System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            position: relative;
+            overflow: hidden;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        video.background-video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -1;
+            transform: translate(-50%, -50%);
+            background: no-repeat;
+            background-size: cover; /* Adjust opacity for better text visibility */
+        }
+        .container {
+            max-width: 800px;
+            margin-top: 50px;
+            position: relative;
+            z-index: 1; /* Ensure content is above the video */
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: none;
+            padding: 30px;
+        }
+        .card-title {
+            color: #2c3e50;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-control {
+            border-radius: 10px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+        .form-control:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+        .btn-primary {
+            background-color: #3498db;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        #result {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        .result-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .result-item i {
+            margin-right: 10px;
+            color: #3498db;
+        }
+        .disclaimer {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #ff0000; /* Red color for emphasis */
+            text-align: center;
+        }
+        .background-video {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <video 
+    autoplay 
+    muted 
+    loop 
+    playsinline 
+    disablePictureInPicture 
+    disableRemotePlayback 
+    class="background-video"
+    style="pointer-events: none;"
+>
+    <source src="https://media-hosting.imagekit.io/7918fe8d457c4843/back.mp4?Expires=1837619745&Key-Pair-Id=K2ZIVPTIP2VGHC&Signature=GYYVilD8CQser85f6qdAfxYGO1Q5b2rNOaFr2YjiSKO4C1m2r1DVu~6QTXjCWnG0v6JfYEtEELRj~gYvLbLRQ4MbDhAt2Q34kUORU0OqHOLdPd8tUyYtjbVUxu7CoNMgUIL7AwmaJuNFv2pQdwZvmESYcQ5g9RvxrFUokB1RPHVdKuKUQH-LXHzcDMnH7gp9sHhpQFglJGNAxEY8hhHFg8G95e-xbLRR4V45Ejz2h-dKeqa0HfT2DdP73XXUmmLJN2WypLNWkMRyXVk9Q0EU94yaQeXl4OIw6xeUeD41lF5NKIbBJ4gP61xUfN~oBsKBfiK0BLP37mk~hRZ0Za8Z-w__" 
+    type="video/mp4">
+</video>
+      
+    <div class="container">
+        <div class="card">
+            <h2 class="card-title">
+                <i class="fas fa-stethoscope"></i> Disease Detection System
+            </h2>
+            <div class="form-group">
+                <textarea class="form-control" id="symptoms" rows="4" 
+                    placeholder="Please describe your symptoms in detail..."></textarea>
+            </div>
+            <div class="text-center">
+                <button class="btn btn-primary" onclick="analyzeSymptoms()">
+                    <i class="fas fa-search"></i> Analyze Symptoms
+                </button>
+            </div>
+
+            <div id="result">
+                <div class="result-item">
+                    <i class="fas fa-diagnoses"></i>
+                    <strong>Predicted Disease:</strong> <span id="disease"></span>
+                </div>
+                <div class="result-item">
+                    <i class="fas fa-shield-alt"></i>
+                    <strong>Precautions:</strong>
+                    <ul id="precautions" style="list-style-type: disc; padding-left: 20px;"></ul>
+                </div>
+            </div>
+
+            <div class="disclaimer">
+                <strong>Disclaimer:</strong> This is an AI-generated diagnosis. Please visit a doctor in serious conditions.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function analyzeSymptoms() {
+            const symptoms = document.getElementById('symptoms').value;
+            if (!symptoms.trim()) {
+                alert('Please enter your symptoms');
+                return;
+            }
+
+            // Show result
+            document.getElementById('result').style.display = 'none';
+
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ symptoms: symptoms })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').style.display = 'block';
+                
+                if (data.success) {
+                    document.getElementById('disease').textContent = data.disease;
+                    const precautionsList = document.getElementById('precautions');
+                    precautionsList.innerHTML = ''; // Clear previous precautions
+                    const precautionsArray = data.precautions.split(', '); // Assuming precautions are comma-separated
+                    precautionsArray.forEach(precaution => {
+                        const li = document.createElement('li');
+                        li.textContent = precaution;
+                        precautionsList.appendChild(li);
+                    });
+                } else {
+                    document.getElementById('disease').textContent = 'No matching disease found';
+                    document.getElementById('precautions').textContent = 'Please consult a healthcare professional';
+                }
+            })
+            .catch(error => {
+                alert('An error occurred. Please try again.');
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
